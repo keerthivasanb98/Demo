@@ -1,0 +1,50 @@
+pipeline {
+    agent any
+
+    environment {
+        EMRTEST_PATH = "C:\\Users\\keerthivasanb\\emrtest"
+        EMRDEMO_PATH = "C:\\Users\\keerthivasanb\\emrdemo"
+    }
+
+    stages {
+        stage('Checkout Code') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Deploy to Target') {
+            steps {
+                script {
+                    if (env.BRANCH_NAME == 'develop') {
+                        echo "Deploying to EMRTEST..."
+
+                        // Clear previous files
+                        bat "rmdir /S /Q %EMRTEST_PATH%"
+                        bat "mkdir %EMRTEST_PATH%"
+
+                        // Copy files
+                        bat "xcopy /E /I /Y server %EMRTEST_PATH%\\server"
+                        bat "xcopy /E /I /Y static %EMRTEST_PATH%\\static"
+                        bat "copy /Y index.html %EMRTEST_PATH%\\index.html"
+                        bat "copy /Y webpack.config.js %EMRTEST_PATH%\\webpack.config.js"
+                        bat "copy /Y package*.json %EMRTEST_PATH%\\"
+                    } else if (env.BRANCH_NAME == 'main') {
+                        echo "Deploying to EMRDEMO..."
+
+                        bat "rmdir /S /Q %EMRDEMO_PATH%"
+                        bat "mkdir %EMRDEMO_PATH%"
+
+                        bat "xcopy /E /I /Y server %EMRDEMO_PATH%\\server"
+                        bat "xcopy /E /I /Y static %EMRDEMO_PATH%\\static"
+                        bat "copy /Y index.html %EMRDEMO_PATH%\\index.html"
+                        bat "copy /Y webpack.config.js %EMRDEMO_PATH%\\webpack.config.js"
+                        bat "copy /Y package*.json %EMRDEMO_PATH%\\"
+                    } else {
+                        echo "Branch not configured for deployment."
+                    }
+                }
+            }
+        }
+    }
+}
